@@ -1,80 +1,79 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { Post } from '../types';
 
-if (!process.env.API_KEY) {
-  console.warn("Gemini API key not found. Please set the API_KEY environment variable.");
+// Assume process.env.API_KEY is configured in the environment
+const apiKey = process.env.API_KEY;
+if (!apiKey) {
+    console.error("API_KEY environment variable not set.");
 }
+const ai = new GoogleGenAI({ apiKey: apiKey || '' });
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
-
-const postSchema = {
-    type: Type.OBJECT,
-    properties: {
-        oneLiner: {
-            type: Type.STRING,
-            description: "A compelling, concise one-line summary of the content, under 15 words. This is like a catchy headline.",
-        },
-        content: {
-            type: Type.STRING,
-            description: "The main body of the post. It should be well-structured and engaging, expanding on the initial idea.",
-        },
-        hashtags: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING },
-            description: "An array of 3-5 relevant hashtags as strings, without the '#' symbol.",
-        },
-    },
-    required: ["oneLiner", "content", "hashtags"],
-};
-
-
-export const generatePostFromIdea = async (idea: string): Promise<{ oneLiner: string; content: string; hashtags: string[] } | null> => {
+export const generateFeedPost = async (idea: string): Promise<{ title: string; body: string; hashtags: string[]; imagePrompt: string } | null> => {
+    if (!apiKey) return null;
     try {
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
-            contents: `Based on the following idea, generate a full feed post. The tone should be insightful and thought-provoking. Idea: "${idea}"`,
+            contents: `Based on the following user idea, generate a full feed post. The idea is: "${idea}".`,
             config: {
                 responseMimeType: "application/json",
-                responseSchema: postSchema,
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        title: { type: Type.STRING, description: "An engaging and catchy title for the post." },
+                        body: { type: Type.STRING, description: "A well-structured body for the post, at least 3 paragraphs long." },
+                        hashtags: {
+                            type: Type.ARRAY,
+                            items: { type: Type.STRING },
+                            description: "An array of 3-5 relevant hashtags (without the #)."
+                        },
+                        imagePrompt: { type: Type.STRING, description: "A short, descriptive prompt to generate a relevant background image." }
+                    },
+                    required: ["title", "body", "hashtags", "imagePrompt"]
+                },
             },
         });
         
-        const text = response.text.trim();
-        const parsed = JSON.parse(text);
-        return {
-            oneLiner: parsed.oneLiner,
-            content: `${parsed.content}\n\n${parsed.hashtags.map((h: string) => `#${h}`).join(' ')}`,
-            hashtags: parsed.hashtags,
-        };
+        const jsonText = response.text.trim();
+        return JSON.parse(jsonText);
 
     } catch (error) {
-        console.error("Error generating post from idea:", error);
+        console.error("Error generating feed post:", error);
         return null;
     }
 };
 
-export const generateImageForPost = async (postContent: string): Promise<string> => {
-    try {
-        const imagePrompt = `Create a visually stunning, abstract, and conceptual image that represents the core themes of this text: "${postContent}". The style should be modern, slightly futuristic, and suitable for a platform about knowledge and curiosity. Avoid text and human faces.`;
-        
-        const response = await ai.models.generateImages({
-            model: 'imagen-4.0-generate-001',
-            prompt: imagePrompt,
-            config: {
-                numberOfImages: 1,
-                aspectRatio: '16:9',
-            },
-        });
 
-        if (response.generatedImages && response.generatedImages.length > 0) {
-            const base64ImageBytes = response.generatedImages[0].image.imageBytes;
-            return `data:image/png;base64,${base64ImageBytes}`;
-        }
-        return `https://picsum.photos/seed/${encodeURIComponent(postContent)}/1280/720`;
+export const generateSummary = async (text: string): Promise<string> => {
+    if (!apiKey) return "AI Summary is unavailable.";
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: `Generate a concise, one-line summary for the following content: "${text}"`,
+        });
+        return response.text.trim();
     } catch (error) {
-        console.error("Error generating image:", error);
-        // Fallback to a placeholder
-        return `https://picsum.photos/seed/${encodeURIComponent(postContent)}/1280/720`;
+        console.error("Error generating summary:", error);
+        return "Could not generate summary.";
+    }
+}
+
+export const getAIChatResponse = async (history: { role: 'user' | 'model', parts: { text: string }[] }[], newMessage: string): Promise<string> => {
+    if (!apiKey) return "AI is currently unavailable. Please check the API key configuration.";
+
+    // FIX: The history passed to the chat should include all previous messages.
+    const chat = ai.chats.create({
+        model: 'gemini-2.5-flash',
+        history: history,
+        config: {
+            systemInstruction: "You are Invox AI, a helpful, friendly, and slightly humorous assistant. You help users explore ideas, understand topics, and navigate the Invox platform.",
+        },
+    });
+
+    try {
+        const response = await chat.sendMessage({ message: newMessage });
+        return response.text.trim();
+    } catch (error) {
+        console.error("Error getting AI chat response:", error);
+        return "Sorry, I encountered an error. Please try again.";
     }
 };

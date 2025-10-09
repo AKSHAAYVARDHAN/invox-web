@@ -1,40 +1,43 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Invox</title>
+    <title>Invox - Fuel Curiosity, Expand Consciousness</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
         theme: {
           extend: {
             colors: {
-              'invox-red': '#FF0000',
-              'invox-dark': '#101010',
-              'invox-gray': '#1C1C1C',
-              'invox-light-gray': '#A9A9A9',
-            },
-          },
-        },
+              'invox-dark': '#121212',
+              'invox-dark-accent': '#1A1A1A',
+              'invox-light-gray': '#B3B3B3',
+              'invox-red': '#E50914',
+              'invox-red-hover': '#F6121D',
+            }
+          }
+        }
       }
     </script>
   <script type="importmap">
 {
   "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.23.0",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "firebase/": "https://aistudiocdn.com/firebase@^12.3.0/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.22.0"
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.4",
+    "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+    "firebase/auth": "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+    "firebase/": "https://aistudiocdn.com/firebase@^12.4.0/"
   }
 }
 </script>
 <link rel="stylesheet" href="/index.css">
 </head>
-  <body class="bg-invox-dark">
+  <body class="bg-invox-dark text-white">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

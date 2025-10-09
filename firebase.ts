@@ -1,10 +1,8 @@
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
 
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getDatabase } from "firebase/database";
-
-
-
+// TODO: Replace with your app's Firebase project configuration
+// See: https://firebase.google.com/docs/web/learn-more#config-object
 const firebaseConfig = {
   apiKey: "AIzaSyBrAQ1VfdG3l2bnHXFNHN6V7eYsXqkt67M",
   authDomain: "invox-7.firebaseapp.com",
@@ -16,6 +14,8 @@ const firebaseConfig = {
   measurementId: "G-884TBTKYFX"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
+// Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
-export const db = getDatabase(app);
